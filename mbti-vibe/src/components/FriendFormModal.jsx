@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
-import { MBTI_AVATAR } from '../constants';
+import { MBTI_AVATAR, MBTI_GROUPS } from '../constants';
 
 const MBTI_TYPES = [
   'INTJ', 'INTP', 'ENTJ', 'ENTP',
@@ -8,6 +8,41 @@ const MBTI_TYPES = [
   'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
   'ISTP', 'ISFP', 'ESTP', 'ESFP',
 ];
+
+// MBTI 分组颜色映射
+const GROUP_COLORS = {
+  '分析家': {
+    bg: 'bg-purple-500',
+    hover: 'hover:bg-purple-600',
+    text: 'text-white',
+    selected: 'ring-purple-500'
+  },
+  '外交家': {
+    bg: 'bg-green-500',
+    hover: 'hover:bg-green-600',
+    text: 'text-white',
+    selected: 'ring-green-500'
+  },
+  '守护者': {
+    bg: 'bg-blue-500',
+    hover: 'hover:bg-blue-600',
+    text: 'text-white',
+    selected: 'ring-blue-500'
+  },
+  '探险家': {
+    bg: 'bg-yellow-500',
+    hover: 'hover:bg-yellow-600',
+    text: 'text-white',
+    selected: 'ring-yellow-500'
+  },
+};
+
+// 获取 MBTI 类型的分组
+function getMBTIGroup(mbti) {
+  return Object.keys(MBTI_GROUPS).find(group =>
+    MBTI_GROUPS[group].includes(mbti)
+  ) || '守护者';
+}
 
 const NATIONALITIES = [
   '中国',
@@ -220,43 +255,51 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
             </div>
           </div>
 
-          {/* MBTI - Avatar Grid Selector */}
+          {/* MBTI - Text Button Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              MBTI 类型 * (点击头像选择)
+              MBTI 类型 * (点击文字选择)
             </label>
-            <div className="grid grid-cols-8 gap-2">
-              {MBTI_TYPES.map(type => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => handleChange('mbti', type)}
-                  className={`
-                    relative aspect-square rounded-lg p-1 transition-all duration-200
-                    ${formData.mbti === type
-                      ? 'bg-blue-500 ring-2 ring-blue-500 ring-offset-2'
-                      : 'bg-gray-100 hover:bg-gray-200'}
-                  `}
-                  title={type}
-                >
-                  <img
-                    src={MBTI_AVATAR[type]}
-                    alt={type}
-                    className="w-full h-full object-contain"
-                  />
-                  {formData.mbti === type && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-blue-500/20 rounded-lg">
-                      <span className="text-xs font-bold text-blue-700 bg-white/90 rounded-full px-1.5 py-0.5">
-                        ✓
-                      </span>
-                    </div>
-                  )}
-                </button>
-              ))}
+
+            {/* MBTI 文字按钮网格 */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {MBTI_TYPES.map(type => {
+                const group = getMBTIGroup(type);
+                const colors = GROUP_COLORS[group];
+                const isSelected = formData.mbti === type;
+
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => handleChange('mbti', type)}
+                    className={`
+                      ${colors.bg} ${colors.hover} ${colors.text}
+                      px-3 py-2 rounded-lg font-bold text-sm
+                      transition-all duration-200
+                      ${isSelected ? `ring-2 ring-offset-2 ${colors.selected}` : 'opacity-80 hover:opacity-100'}
+                    `}
+                    title={group}
+                  >
+                    {type}
+                  </button>
+                );
+              })}
             </div>
-            <p className="mt-2 text-sm text-gray-600 text-center font-medium">
-              已选择：{formData.mbti}
-            </p>
+
+            {/* 选中类型预览 */}
+            <div className="flex items-center justify-center gap-4 p-4 bg-gray-50 rounded-xl">
+              <img
+                src={MBTI_AVATAR[formData.mbti]}
+                alt={formData.mbti}
+                className="w-16 h-16 object-contain"
+              />
+              <div>
+                <p className="text-sm text-gray-500">已选择</p>
+                <p className="text-xl font-bold text-gray-800">{formData.mbti}</p>
+                <p className="text-sm text-gray-500">{getMBTIGroup(formData.mbti)}</p>
+              </div>
+            </div>
           </div>
 
           {/* 出生日期 */}
