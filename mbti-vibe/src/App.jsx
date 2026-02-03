@@ -5,7 +5,9 @@ import GroupTabs from './components/GroupTabs';
 import StatsView from './components/StatsView';
 import SearchBar from './components/SearchBar';
 import DataManagement from './components/DataManagement';
-import { GENDER_OPTIONS, MBTI_TAGS } from './constants';
+import BirthdayWidget from './components/BirthdayWidget';
+import MapView from './components/MapView';
+import { GENDER_OPTIONS, MBTI_TAGS, MBTI_GROUPS } from './constants';
 import './App.css';
 
 function App() {
@@ -19,6 +21,8 @@ function App() {
   // 分组和统计状态
   const [activeGroup, setActiveGroup] = useState('全部');
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
+  const [showBirthdayWidget, setShowBirthdayWidget] = useState(true);
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
   // 分组维度：'custom' 自定义分组 | 'gender' 性别
   const [groupingDimension, setGroupingDimension] = useState('custom');
 
@@ -275,9 +279,19 @@ function App() {
       <div className="max-w-md mx-auto">
         {/* 标题和数据管理按钮 */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">
-            MBTI 人格卡片
-          </h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              MBTI 人格卡片
+            </h1>
+            {!showBirthdayWidget && (
+              <button
+                onClick={() => setShowBirthdayWidget(true)}
+                className="mt-2 text-sm text-pink-600 hover:text-pink-700 flex items-center gap-1"
+              >
+                🎂 查看近期生日
+              </button>
+            )}
+          </div>
           <DataManagement friends={friends} onImport={handleImport} />
         </div>
 
@@ -298,6 +312,30 @@ function App() {
           onSortChange={setSortBy}
         />
 
+        {/* 视图切换按钮 */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setViewMode('list')}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+              viewMode === 'list'
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            📋 列表视图
+          </button>
+          <button
+            onClick={() => setViewMode('map')}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+              viewMode === 'map'
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            🗺️ 地图分布
+          </button>
+        </div>
+
         {/* 统计面板 */}
         <div className="mb-4">
           <StatsView
@@ -308,46 +346,61 @@ function App() {
           />
         </div>
 
-        {/* 好友卡片列表 */}
-        <div className="space-y-4">
-          {filteredFriends.map((friend) => (
-            <UserCard
-              key={friend.id}
-              id={friend.id}
-              mbti={friend.mbti}
-              name={friend.name}
-              avatar={friend.avatar}
-              tags={friend.tags}
-              gender={friend.gender}
-              groups={friend.groups || []}
-              friends={filteredFriends}
-              isPinned={friend.isPinned || false}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onTogglePin={handleTogglePin}
-            />
-          ))}
-        </div>
+        {/* 近期生日小组件 */}
+        {showBirthdayWidget && (
+          <BirthdayWidget
+            friends={filteredFriends}
+            onCollapse={() => setShowBirthdayWidget(false)}
+          />
+        )}
 
-        {/* 空状态提示 */}
-        {filteredFriends.length === 0 && friends.length > 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 mx-auto mb-4 text-gray-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            <p>「{activeGroup}」分组暂无成员</p>
-          </div>
+        {/* 列表或地图视图 */}
+        {viewMode === 'list' ? (
+          <>
+            {/* 好友卡片列表 */}
+            <div className="space-y-4">
+              {filteredFriends.map((friend) => (
+                <UserCard
+                  key={friend.id}
+                  id={friend.id}
+                  mbti={friend.mbti}
+                  name={friend.name}
+                  avatar={friend.avatar}
+                  tags={friend.tags}
+                  gender={friend.gender}
+                  groups={friend.groups || []}
+                  friends={filteredFriends}
+                  isPinned={friend.isPinned || false}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onTogglePin={handleTogglePin}
+                />
+              ))}
+            </div>
+
+            {/* 空状态提示 */}
+            {filteredFriends.length === 0 && friends.length > 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-16 w-16 mx-auto mb-4 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                <p>「{activeGroup}」分组暂无成员</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <MapView friends={filteredFriends} MBTI_GROUPS={MBTI_GROUPS} />
         )}
       </div>
 
