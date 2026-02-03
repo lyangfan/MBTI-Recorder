@@ -74,8 +74,15 @@ function App() {
       });
     }
 
-    // 3. 排序
+    // 3. 排序（置顶优先）
     result = [...result].sort((a, b) => {
+      // 首先按置顶状态排序（置顶的在前）
+      const aPinned = a.isPinned || false;
+      const bPinned = b.isPinned || false;
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+
+      // 置顶状态相同时，再按其他条件排序
       if (sortBy === 'recent') {
         // 最近添加：按 createdAt 降序（新的在前）
         return (b.createdAt || 0) - (a.createdAt || 0);
@@ -103,6 +110,7 @@ function App() {
           ...friend,
           nationality: friend.nationality || '中国',
           province: friend.province || friend.hometown || '北京',
+          isPinned: friend.isPinned || false, // 确保旧数据有 isPinned 字段
         };
 
         // 如果有旧的 group 字段（字符串），转换为 groups 数组
@@ -134,6 +142,7 @@ function App() {
           avatar: '🧙‍♂️',
           tags: ['建筑师', '战略性', '独立'],
           createdAt: now - 10000000, // 较早添加
+          isPinned: false,
         },
         {
           id: '2',
@@ -149,6 +158,7 @@ function App() {
           avatar: '🧚‍♀️',
           tags: ['提倡者', '理想主义', '深刻'],
           createdAt: now - 5000000, // 中间添加
+          isPinned: false,
         },
         {
           id: '3',
@@ -164,6 +174,7 @@ function App() {
           avatar: '📋',
           tags: ['物流师', '负责', '务实'],
           createdAt: now - 3000000, // 较晚添加
+          isPinned: false,
         },
         {
           id: '4',
@@ -210,6 +221,15 @@ function App() {
     if (confirmed) {
       setFriends(friends.filter(f => f.id !== id));
     }
+  };
+
+  // 切换置顶状态
+  const handleTogglePin = (id) => {
+    setFriends(friends.map(f =>
+      f.id === id
+        ? { ...f, isPinned: !f.isPinned }
+        : f
+    ));
   };
 
   // 打开添加好友模态框
@@ -300,8 +320,11 @@ function App() {
               tags={friend.tags}
               gender={friend.gender}
               groups={friend.groups || []}
+              friends={filteredFriends}
+              isPinned={friend.isPinned || false}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onTogglePin={handleTogglePin}
             />
           ))}
         </div>

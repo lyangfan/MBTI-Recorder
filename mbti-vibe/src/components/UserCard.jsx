@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import WikiModal from './WikiModal';
+import CompatibilityModal from './CompatibilityModal';
 import { MBTI_AVATAR } from '../constants';
 
 // MBTI 类型分组
@@ -63,11 +64,12 @@ function getMBTIGroup(mbti) {
   ) || '守护者';
 }
 
-function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], onEdit, onDelete }) {
+function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends = [], isPinned = false, onEdit, onDelete, onTogglePin }) {
   const group = getMBTIGroup(mbti);
   const colorConfig = getColorConfig(mbti, gender);
   const [isPressed, setIsPressed] = useState(false);
   const [showWiki, setShowWiki] = useState(false);
+  const [showCompatibility, setShowCompatibility] = useState(false);
 
   // 分组标签显示逻辑：最多显示2个，超过的显示"+N"
   const displayGroups = groups.slice(0, 2);
@@ -205,6 +207,59 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], onEdit, o
               />
             </svg>
           </button>
+
+          {/* Compatibility Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCompatibility(true);
+            }}
+            className="bg-current/10 hover:bg-pink-500/70 p-2 rounded-full transition-colors"
+            style={{ color: gender === '女' ? '#be185d' : 'white' }}
+            title="查看兼容性"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+          {/* Pin Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePin(id);
+            }}
+            className={`p-2 rounded-full transition-colors flex items-center justify-center ${
+              isPinned
+                ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900'
+                : 'bg-current/10 hover:bg-yellow-400/70'
+            }`}
+            style={isPinned ? {} : { color: gender === '女' ? '#ca8a04' : 'white' }}
+            title={isPinned ? "取消置顶" : "置顶"}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill={isPinned ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 17l5-5V5H7v7l5 5z"/>
+              <path d="M7 5h10"/>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -213,6 +268,15 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], onEdit, o
         <WikiModal
           mbti={mbti}
           onClose={() => setShowWiki(false)}
+        />
+      )}
+
+      {/* CompatibilityModal */}
+      {showCompatibility && (
+        <CompatibilityModal
+          mbti={mbti}
+          friends={friends}
+          onClose={() => setShowCompatibility(false)}
         />
       )}
     </div>

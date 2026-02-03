@@ -394,3 +394,111 @@ export const MBTI_DETAILS = {
     quotes: '"这也太好笑了吧哈哈哈哈哈！" / "走！我们也去！" / "今晚去哪嗨？" / "人生苦短，及时行乐。"',
   },
 };
+
+// MBTI 兼容性映射
+export const MBTI_RELATIONSHIPS = {
+  // --- 分析家 (Analysts) ---
+  "INTJ": {
+    bestMatch: ["ENFP", "ENTP"],
+    challenging: ["ESFJ"],
+    label: "智性恋天花板",
+    advice: "你需要一个能把你拽出脑内世界去晒太阳的'快乐小狗'，或者一个能和你通宵辩论真理的对手。"
+  },
+  "INTP": {
+    bestMatch: ["ENTJ", "ESTJ"],
+    challenging: ["ESFJ"],
+    label: "寻找大脑漫游搭子",
+    advice: "你需要一个能把你天马行空的理论落地执行的霸道总裁，或者一个能温柔包容你'断联'的守护者。"
+  },
+  "ENTJ": {
+    bestMatch: ["INTP", "INFP"],
+    challenging: ["ISFP"],
+    label: "霸道总裁寻找军师",
+    advice: "最适合你的通常是能提供顶级智力支持的逻辑学家，或是能触碰你内心柔软角落的治愈系哲学家。"
+  },
+  "ENTP": {
+    bestMatch: ["INFJ", "INTJ"],
+    challenging: ["ISFJ"],
+    label: "寻找能接住梗的人",
+    advice: "你需要一个能看穿你玩笑背后深意、且不会被你的'抬杠'气跑的灵魂伴侣。"
+  },
+
+  // --- 外交家 (Diplomats) ---
+  "INFJ": {
+    bestMatch: ["ENTP", "ENFP"],
+    challenging: ["ESTP"],
+    label: "渴望深层灵魂共鸣",
+    advice: "那个看起来疯疯癫癫的'辩论家'其实最懂你的复杂，而'竞选者'能点燃你对生活的热情。"
+  },
+  "INFP": {
+    bestMatch: ["ENFJ", "ENTJ"],
+    challenging: ["ESTJ"],
+    label: "等待王子/骑士",
+    advice: "你需要一个能引导你走出情绪迷宫的'主人公'，或者一个能为你遮风挡雨的强大依靠。"
+  },
+  "ENFJ": {
+    bestMatch: ["INFP", "ISFP"],
+    challenging: ["ISTP"],
+    label: "想要照顾全世界",
+    advice: "那个安静敏感的'调停者'最能激发你的保护欲，你们是天造地设的救赎文学主角。"
+  },
+  "ENFP": {
+    bestMatch: ["INTJ", "INFJ"],
+    challenging: ["ISTJ"],
+    label: "快乐修勾寻找饲养员",
+    advice: "去找那个在角落里看起来最高冷的人吧，你是唯一能融化这块冰的火把。"
+  },
+
+  // --- 守护者 (Sentinels) ---
+  "ISTJ": {
+    bestMatch: ["ESFP", "ESTP"],
+    challenging: ["ENFP"],
+    label: "秩序守护者",
+    advice: "虽然你喜欢按部就班，但那个打破规则的'表演者'会给你的黑白世界带来意想不到的色彩。"
+  },
+  "ISFJ": {
+    bestMatch: ["ESFP", "ESTP"],
+    challenging: ["ENTP"],
+    label: "温柔的港湾",
+    advice: "那个充满活力的'冒险家'能带你体验从未有过的刺激，而你会是他们最坚实的后盾。"
+  },
+  "ESTJ": {
+    bestMatch: ["ISTP", "ISFP"],
+    challenging: ["INFP"],
+    label: "寻找靠谱合伙人",
+    advice: "你需要一个话少活好、能完美执行你计划的行动派，而不是只会空谈梦想的空想家。"
+  },
+  "ESFJ": {
+    bestMatch: ["ISFP", "ISTP"],
+    challenging: ["INTJ"],
+    label: "热情的管家",
+    advice: "那个安静但有品位的艺术家（ISFP）最懂得欣赏你的付出，你们能把日子过得充满烟火气。"
+  },
+
+  // --- 探险家 (Explorers) ---
+  "ISTP": {
+    bestMatch: ["ESTJ", "ESFJ"],
+    challenging: ["ENFJ"],
+    label: "独行侠",
+    advice: "你需要一个给你自由、不搞情感勒索，但能在关键时刻帮你处理人际麻烦的搭档。"
+  },
+  "ISFP": {
+    bestMatch: ["ESFJ", "ESTJ"],
+    challenging: ["ENTJ"],
+    label: "自由的灵魂",
+    advice: "那个热心肠的'执政官'会把你照顾得很好，让你能心无旁骛地追求美和艺术。"
+  },
+  "ESTP": {
+    bestMatch: ["ISFJ", "ISTJ"],
+    challenging: ["INFJ"],
+    label: "玩命关头",
+    advice: "你负责在前方冲锋陷阵，那个温柔细心的'守卫者'负责在后方为你收拾残局，绝配。"
+  },
+  "ESFP": {
+    bestMatch: ["ISTJ", "ISFJ"],
+    challenging: ["INTJ"],
+    label: "舞台C位",
+    advice: "找个稳重话少的人吧！他会惊叹于你的活力，而他的稳重能让你避免玩过火。"
+  }
+};
+
