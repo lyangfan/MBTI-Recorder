@@ -249,9 +249,10 @@ function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }
           hideOverlap: true,
         },
         force: {
-          repulsion: filteredFriends.length > 20 ? 200 : 300, // 节点多时减小排斥力
-          edgeLength: [80, 150],
-          gravity: 0.1,
+          repulsion: filteredFriends.length > 20 ? 300 : 400, // 增加排斥力，让节点更分散
+          edgeLength: [100, 200], // 增加边的长度范围
+          gravity: 0.2, // 增加重力，让节点更紧凑地聚拢
+          friction: 0.6, // 增加摩擦力，让节点更快停止运动
           layoutAnimation: true,
         },
         // 去掉箭头，因为 MBTI 关系是双向的
@@ -408,6 +409,17 @@ function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }
           style={{ height: '100%', width: '100%' }}
           notMerge={true}
           lazyUpdate={true}
+          onEvents={{
+            'finished': () => {
+              // 图表渲染完成后，停止力导向布局动画
+              if (chartRef.current) {
+                const echartsInstance = chartRef.current.getEchartsInstance();
+                echartsInstance.dispatchAction({
+                  type: 'stopLayout'
+                });
+              }
+            }
+          }}
         />
       </div>
 
