@@ -1,10 +1,16 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { MBTI_AVATAR, MBTI_RELATIONSHIPS } from '../constants';
 
 function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }) {
   // 本地分组筛选状态
   const [selectedGroup, setSelectedGroup] = useState('全部');
+
+  // 当外部 activeGroup 变化时，同步到本地 selectedGroup
+  useEffect(() => {
+    setSelectedGroup(activeGroup);
+  }, [activeGroup]);
+
   // 截图相关
   const chartRef = useRef(null);
   const [isCapturing, setIsCapturing] = useState(false);
