@@ -68,15 +68,15 @@ function BirthdayWidget({ friends = [], onCollapse }) {
             <Cake className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-800">近期生日</h3>
-            <p className="text-xs text-gray-500">接下来 30 天内有 {upcomingBirthdays.length} 位好友过生日</p>
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white">近期生日</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">接下来 30 天内有 {upcomingBirthdays.length} 位好友过生日</p>
           </div>
         </div>
 
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 hover:bg-white/50 rounded-full transition-colors"
+            className="p-1 hover:bg-white dark:bg-gray-800/50 rounded-full transition-colors"
             title={isCollapsed ? "展开" : "收起"}
           >
             {isCollapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
@@ -84,7 +84,7 @@ function BirthdayWidget({ friends = [], onCollapse }) {
           {onCollapse && (
             <button
               onClick={onCollapse}
-              className="p-1 hover:bg-white/50 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+              className="p-1 hover:bg-white dark:bg-gray-800/50 rounded-full transition-colors text-gray-400 hover:text-gray-600"
               title="隐藏"
             >
               <X size={18} />
@@ -103,7 +103,7 @@ function BirthdayWidget({ friends = [], onCollapse }) {
             return (
               <div
                 key={friend.id}
-                className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow"
               >
                 {/* 头像 */}
                 <img
@@ -115,12 +115,12 @@ function BirthdayWidget({ friends = [], onCollapse }) {
                 {/* 信息 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-gray-800 truncate">{friend.name}</p>
+                    <p className="font-medium text-gray-800 dark:text-white truncate">{friend.name}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${urgencyBg} ${urgencyColor}`}>
                       {friend.daysUntil === 0 ? '今天' : friend.daysUntil === 1 ? '明天' : `${friend.daysUntil}天后`}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {friend.birthdayDate} · 满 {friend.nextAge} 岁 · {friend.mbti}
                   </p>
                 </div>

@@ -1,6 +1,21 @@
 // 性别选项常量
 export const GENDER_OPTIONS = ['男', '女'];
 
+// 星座计算函数
+export const getZodiac = (dateStr) => {
+  if (!dateStr) return '未知';
+
+  const date = new Date(dateStr);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  const zodiacs = ['摩羯', '水瓶', '双鱼', '白羊', '金牛', '双子', '巨蟹', '狮子', '处女', '天秤', '天蝎', '射手', '摩羯'];
+  const dates = [20, 19, 21, 20, 21, 22, 23, 23, 23, 24, 23, 22];
+
+  const zodiacIndex = day < dates[month - 1] ? month - 1 : month;
+  return zodiacs[zodiacIndex] + '座';
+};
+
 // MBTI 类型常量（16种）
 export const MBTI_TYPES = [
   'INTJ', 'INTP', 'ENTJ', 'ENTP',

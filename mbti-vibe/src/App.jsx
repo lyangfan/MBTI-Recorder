@@ -7,6 +7,7 @@ import SearchBar from './components/SearchBar';
 import DataManagement from './components/DataManagement';
 import BirthdayWidget from './components/BirthdayWidget';
 import MapView from './components/MapView';
+import RelationshipGraph from './components/RelationshipGraph';
 import { GENDER_OPTIONS, MBTI_TAGS, MBTI_GROUPS } from './constants';
 import './App.css';
 
@@ -132,6 +133,7 @@ function App() {
       // 如果没有存储的数据，使用默认演示数据
       const now = Date.now();
       const defaultFriends = [
+        // 分析家组
         {
           id: '1',
           name: '小王',
@@ -141,15 +143,52 @@ function App() {
           birthDate: '2000-01-15',
           nationality: '中国',
           province: '北京',
+          city: '朝阳区',
           education: '本科',
           groups: ['公司'],
           avatar: '🧙‍♂️',
           tags: ['建筑师', '战略性', '独立'],
-          createdAt: now - 10000000, // 较早添加
+          createdAt: now - 10000000,
           isPinned: false,
         },
         {
           id: '2',
+          name: '小赵',
+          gender: '女',
+          mbti: 'ENFP',
+          age: 23,
+          birthDate: '2002-03-10',
+          nationality: '中国',
+          province: '北京',
+          city: '海淀区',
+          education: '本科',
+          groups: ['大学同学'],
+          avatar: '🐕',
+          tags: ['竞选者', '热情', '自由'],
+          createdAt: now - 9000000,
+          isPinned: false,
+        },
+        {
+          id: '3',
+          name: '小钱',
+          gender: '女',
+          mbti: 'ESFJ',
+          age: 26,
+          birthDate: '1999-05-18',
+          nationality: '中国',
+          province: '北京',
+          city: '东城区',
+          education: '硕士',
+          groups: ['高中同学'],
+          avatar: '👩‍💼',
+          tags: ['执政官', '关怀', '合作'],
+          createdAt: now - 8000000,
+          isPinned: false,
+        },
+
+        // 外交家组
+        {
+          id: '4',
           name: '小李',
           gender: '女',
           mbti: 'INFJ',
@@ -157,15 +196,52 @@ function App() {
           birthDate: '2001-05-20',
           nationality: '中国',
           province: '上海',
+          city: '浦东新区',
           education: '硕士',
           groups: ['大学同学'],
           avatar: '🧚‍♀️',
           tags: ['提倡者', '理想主义', '深刻'],
-          createdAt: now - 5000000, // 中间添加
+          createdAt: now - 7000000,
           isPinned: false,
         },
         {
-          id: '3',
+          id: '5',
+          name: '小孙',
+          gender: '男',
+          mbti: 'ENTP',
+          age: 25,
+          birthDate: '2000-08-12',
+          nationality: '中国',
+          province: '上海',
+          city: '黄浦区',
+          education: '本科',
+          groups: ['公司'],
+          avatar: '🎭',
+          tags: ['辩论家', '创新', '挑战'],
+          createdAt: now - 6000000,
+          isPinned: false,
+        },
+        {
+          id: '6',
+          name: '小周',
+          gender: '男',
+          mbti: 'ESTP',
+          age: 27,
+          birthDate: '1998-11-25',
+          nationality: '中国',
+          province: '上海',
+          city: '徐汇区',
+          education: '大专',
+          groups: ['高中同学'],
+          avatar: '🎯',
+          tags: ['企业家', '活力', '冒险'],
+          createdAt: now - 5000000,
+          isPinned: false,
+        },
+
+        // 守护者组
+        {
+          id: '7',
           name: '小张',
           gender: '男',
           mbti: 'ISTJ',
@@ -173,15 +249,52 @@ function App() {
           birthDate: '1997-08-10',
           nationality: '中国',
           province: '广东',
+          city: '广州',
           education: '本科',
           groups: ['家人'],
           avatar: '📋',
           tags: ['物流师', '负责', '务实'],
-          createdAt: now - 3000000, // 较晚添加
+          createdAt: now - 4000000,
           isPinned: false,
         },
         {
-          id: '4',
+          id: '8',
+          name: '小吴',
+          gender: '女',
+          mbti: 'ESFP',
+          age: 22,
+          birthDate: '2003-06-30',
+          nationality: '中国',
+          province: '广东',
+          city: '深圳',
+          education: '本科',
+          groups: ['大学同学'],
+          avatar: '🎪',
+          tags: ['表演者', '娱乐', '自发'],
+          createdAt: now - 3000000,
+          isPinned: false,
+        },
+        {
+          id: '9',
+          name: '小郑',
+          gender: '女',
+          mbti: 'ENFP',
+          age: 24,
+          birthDate: '2001-09-15',
+          nationality: '中国',
+          province: '广东',
+          city: '广州',
+          education: '硕士',
+          groups: ['公司'],
+          avatar: '🌈',
+          tags: ['竞选者', '热情', '自由'],
+          createdAt: now - 2000000,
+          isPinned: false,
+        },
+
+        // 探险家组
+        {
+          id: '10',
           name: '小陈',
           gender: '男',
           mbti: 'ISTP',
@@ -189,11 +302,47 @@ function App() {
           birthDate: '1999-03-25',
           nationality: '中国',
           province: '浙江',
+          city: '杭州',
           education: '大专',
           groups: ['公司'],
           avatar: '🔧',
           tags: ['鉴赏家', '灵活', '动手'],
-          createdAt: now - 1000000, // 最新添加
+          createdAt: now - 1000000,
+          isPinned: false,
+        },
+        {
+          id: '11',
+          name: '小冯',
+          gender: '女',
+          mbti: 'ESTJ',
+          age: 29,
+          birthDate: '1996-12-08',
+          nationality: '中国',
+          province: '浙江',
+          city: '宁波',
+          education: '本科',
+          groups: ['家人'],
+          avatar: '👔',
+          tags: ['总经理', '高效', '组织'],
+          createdAt: now - 500000,
+          isPinned: false,
+        },
+        {
+          id: '12',
+          name: '小沈',
+          gender: '女',
+          mbti: 'INFP',
+          age: 23,
+          birthDate: '2002-07-22',
+          nationality: '中国',
+          province: '浙江',
+          city: '杭州',
+          education: '本科',
+          groups: ['大学同学'],
+          avatar: '🌸',
+          tags: ['调停者', '和谐', '创意'],
+          createdAt: now - 400000,
+          isPinned: false,
         },
       ];
       setFriends(defaultFriends);
@@ -275,7 +424,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4">
+    <div className="min-h-screen bg-gray-100 py-12 px-4 transition-colors duration-300">
       <div className="max-w-md mx-auto">
         {/* 标题和数据管理按钮 */}
         <div className="flex items-center justify-between mb-6">
@@ -292,7 +441,9 @@ function App() {
               </button>
             )}
           </div>
-          <DataManagement friends={friends} onImport={handleImport} />
+          <div className="flex items-center gap-2">
+            <DataManagement friends={friends} onImport={handleImport} />
+          </div>
         </div>
 
         {/* 分组导航栏 */}
@@ -313,26 +464,36 @@ function App() {
         />
 
         {/* 视图切换按钮 */}
-        <div className="flex gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <button
             onClick={() => setViewMode('list')}
-            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+            className={`py-2 px-3 rounded-lg font-medium transition-all text-sm ${
               viewMode === 'list'
                 ? 'bg-blue-500 text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            📋 列表视图
+            📋 列表
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+            className={`py-2 px-3 rounded-lg font-medium transition-all text-sm ${
               viewMode === 'map'
                 ? 'bg-blue-500 text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            🗺️ 地图分布
+            🗺️ 地图
+          </button>
+          <button
+            onClick={() => setViewMode('graph')}
+            className={`py-2 px-3 rounded-lg font-medium transition-all text-sm ${
+              viewMode === 'graph'
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            🕸️ 关系网
           </button>
         </div>
 
@@ -354,7 +515,7 @@ function App() {
           />
         )}
 
-        {/* 列表或地图视图 */}
+        {/* 列表或地图或网络图视图 */}
         {viewMode === 'list' ? (
           <>
             {/* 好友卡片列表 */}
@@ -374,6 +535,8 @@ function App() {
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onTogglePin={handleTogglePin}
+                  birthDate={friend.birthDate}
+                  createdAt={friend.createdAt}
                 />
               ))}
             </div>
@@ -399,8 +562,10 @@ function App() {
               </div>
             )}
           </>
-        ) : (
+        ) : viewMode === 'map' ? (
           <MapView friends={filteredFriends} MBTI_GROUPS={MBTI_GROUPS} />
+        ) : (
+          <RelationshipGraph friends={filteredFriends} groups={groups} activeGroup={activeGroup} />
         )}
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
-import { MBTI_AVATAR, MBTI_GROUPS } from '../constants';
+import { MBTI_AVATAR, MBTI_GROUPS, getZodiac } from '../constants';
 
 const MBTI_TYPES = [
   'INTJ', 'INTP', 'ENTJ', 'ENTP',
@@ -199,10 +199,10 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white rounded-t-3xl px-6 py-4 border-b border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 rounded-t-3xl px-6 py-4 border-b border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
             {friend ? '编辑好友' : '添加好友'}
           </h2>
         </div>
@@ -211,7 +211,7 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* 名字 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               名字 *
             </label>
             <input
@@ -219,14 +219,14 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
               required
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="请输入名字"
             />
           </div>
 
           {/* 性别 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               性别 *
             </label>
             <div className="flex gap-4">
@@ -239,7 +239,7 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
                   onChange={(e) => handleChange('gender', e.target.value)}
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="ml-2 text-gray-700">男</span>
+                <span className="ml-2 text-gray-700 dark:text-gray-200">男</span>
               </label>
               <label className="flex items-center cursor-pointer">
                 <input
@@ -250,14 +250,14 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
                   onChange={(e) => handleChange('gender', e.target.value)}
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="ml-2 text-gray-700">女</span>
+                <span className="ml-2 text-gray-700 dark:text-gray-200">女</span>
               </label>
             </div>
           </div>
 
           {/* MBTI - Text Button Selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               MBTI 类型 * (点击文字选择)
             </label>
 
@@ -288,23 +288,23 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
             </div>
 
             {/* 选中类型预览 */}
-            <div className="flex items-center justify-center gap-4 p-4 bg-gray-50 rounded-xl">
+            <div className="flex items-center justify-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
               <img
                 src={MBTI_AVATAR[formData.mbti]}
                 alt={formData.mbti}
                 className="w-16 h-16 object-contain"
               />
               <div>
-                <p className="text-sm text-gray-500">已选择</p>
-                <p className="text-xl font-bold text-gray-800">{formData.mbti}</p>
-                <p className="text-sm text-gray-500">{getMBTIGroup(formData.mbti)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">已选择</p>
+                <p className="text-xl font-bold text-gray-800 dark:text-white">{formData.mbti}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{getMBTIGroup(formData.mbti)}</p>
               </div>
             </div>
           </div>
 
           {/* 出生日期 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               出生日期 *
             </label>
             <input
@@ -312,25 +312,32 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
               required
               value={formData.birthDate}
               onChange={(e) => handleChange('birthDate', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
             {formData.birthDate && (
-              <p className="mt-1 text-sm text-gray-500">
-                年龄：{calculateAge(formData.birthDate)} 岁
-              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  年龄：<span className="font-medium text-gray-800 dark:text-white">{calculateAge(formData.birthDate)} 岁</span>
+                </span>
+                <span className="text-gray-300">|</span>
+                <span className="text-sm text-purple-600 font-medium flex items-center gap-1">
+                  <span>⭐</span>
+                  {getZodiac(formData.birthDate)}
+                </span>
+              </div>
             )}
           </div>
 
           {/* 国籍 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               国籍 *
             </label>
             <select
               required
               value={formData.nationality}
               onChange={(e) => handleChange('nationality', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-800"
             >
               {NATIONALITIES.map(nation => (
                 <option key={nation} value={nation}>{nation}</option>
@@ -341,14 +348,14 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
           {/* 省份（仅中国显示） */}
           {formData.nationality === '中国' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 省份 *
               </label>
               <select
                 required
                 value={formData.province}
                 onChange={(e) => handleChange('province', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-800"
               >
                 {PROVINCES.map(province => (
                   <option key={province} value={province}>{province}</option>
@@ -359,13 +366,13 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
 
           {/* 学历 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               学历
             </label>
             <select
               value={formData.education}
               onChange={(e) => handleChange('education', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-800"
             >
               {EDUCATION_OPTIONS.map(education => (
                 <option key={education} value={education}>{education}</option>
@@ -375,7 +382,7 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
 
           {/* 分组标签管理 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               分组标签
             </label>
 
@@ -407,7 +414,7 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
                 value={newGroupInput}
                 onChange={(e) => setNewGroupInput(e.target.value)}
                 onKeyDown={handleGroupInputKeyDown}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 placeholder="输入新标签名称"
               />
               <button
@@ -422,7 +429,7 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
             {/* 推荐标签区 */}
             {allExistingGroups.length > 0 && (
               <div className="mt-3">
-                <p className="text-xs text-gray-500 mb-2">推荐标签（点击添加）：</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">推荐标签（点击添加）：</p>
                 <div className="flex flex-wrap gap-2">
                   {allExistingGroups
                     .filter(g => !formData.groups.includes(g))
@@ -432,7 +439,7 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
                         key={group}
                         type="button"
                         onClick={() => handleAddRecommendedGroup(group)}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition"
+                        className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm hover:bg-gray-200 transition"
                       >
                         + {group}
                       </button>
@@ -447,7 +454,7 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition font-medium"
+              className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:bg-gray-700 transition font-medium"
             >
               取消
             </button>

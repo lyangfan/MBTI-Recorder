@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import html2canvas from 'html2canvas';
 
 // MBTI 分组定义
 const MBTI_GROUPS = {
@@ -80,6 +81,9 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
   const [viewMode, setViewMode] = useState('group');
   // 颜色方案（仅在 type 模式下生效）：'monochromatic' 同色系 | 'colorful' 彩色
   const [colorScheme, setColorScheme] = useState('monochromatic');
+  // 图片生成相关
+  const statsRef = useRef(null);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   // 统计当前分组的 MBTI 分布
   const chartData = useMemo(() => {
@@ -128,11 +132,104 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
 
   const totalCount = friends.length;
 
+  // 生成分享图片
+  const handleGenerateImage = async () => {
+    if (!statsRef.current || isCapturing) return;
+
+    setIsCapturing(true);
+
+    try {
+      // 检测当前是否为深色模式
+      const isDarkMode = document.documentElement.classList.contains('dark');
+
+      // 等待更长时间确保图表完全渲染
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // 查找 SVG 元素
+      const svgElement = statsRef.current.querySelector('svg');
+
+      if (!svgElement) {
+        throw new Error('未找到图表元素');
+      }
+
+      // 克隆 SVG 元素
+      const clone = svgElement.cloneNode(true);
+
+      // 设置 SVG 的尺寸和命名空间
+      const serializer = new XMLSerializer();
+      let svgString = serializer.serializeToString(clone);
+
+      // 添加命名空间
+      if (!svgString.startsWith('<svg xmlns')) {
+        svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+
+      // 创建 Blob 和 URL
+      const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      // 创建 Image 对象
+      const img = new Image();
+      img.onload = () => {
+        // 创建 Canvas
+        const canvas = document.createElement('canvas');
+        const padding = 40;
+        canvas.width = (svgElement.getBoundingClientRect().width || 800) * 2 + padding * 2;
+        canvas.height = (svgElement.getBoundingClientRect().height || 400) * 2 + padding * 2;
+        const ctx = canvas.getContext('2d');
+
+        // 填充背景
+        ctx.fillStyle = isDarkMode ? '#1f2937' : '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 绘制 SVG（放大2倍）
+        ctx.drawImage(img, padding, padding, canvas.width - padding * 2, canvas.height - padding * 2);
+
+        // 添加水印
+        const watermarkText = 'MBTI Vibe - 社交分享';
+        const dateText = new Date().toLocaleDateString('zh-CN');
+
+        ctx.font = 'bold 16px Arial, sans-serif';
+        ctx.fillStyle = isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
+        ctx.textAlign = 'center';
+
+        const watermarkY = canvas.height - 15;
+        ctx.fillText(watermarkText, canvas.width / 2, watermarkY);
+        ctx.font = '12px Arial, sans-serif';
+        ctx.fillText(dateText, canvas.width / 2, watermarkY + 18);
+
+        // 下载图片
+        canvas.toBlob((blob) => {
+          const downloadUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `mbti-stats-${groupName}-${Date.now()}.png`;
+          link.href = downloadUrl;
+          link.click();
+          URL.revokeObjectURL(downloadUrl);
+          URL.revokeObjectURL(url);
+          setIsCapturing(false);
+        }, 'image/png');
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        setIsCapturing(false);
+        alert('生成图片失败，请重试');
+      };
+
+      img.src = url;
+    } catch (error) {
+      console.error('生成图片失败:', error);
+      setIsCapturing(false);
+      alert('生成图片失败：' + error.message);
+    }
+  };
+
   if (isCollapsed) {
     return (
       <button
         onClick={onToggle}
-        className="w-full bg-white rounded-2xl shadow-lg p-4 hover:shadow-xl transition-shadow flex items-center justify-center gap-2 text-gray-700 font-medium"
+        className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 hover:shadow-xl transition-shadow flex items-center justify-center gap-2 text-gray-700 font-medium"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -148,30 +245,71 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-gray-800">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-white">
           {groupName === '全部' ? '全部统计' : `${groupName} - 统计`}
         </h3>
-        <button
-          onClick={onToggle}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          title="收起"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-gray-500"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+        <div className="flex items-center gap-2">
+          {/* 生成图片按钮 */}
+          <button
+            onClick={handleGenerateImage}
+            disabled={isCapturing || totalCount === 0}
+            className={`p-2 rounded-full transition-all ${
+              isCapturing || totalCount === 0
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+            title={isCapturing ? '生成中...' : '生成分享图片'}
           >
-            <path
-              fillRule="evenodd"
-              d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+            {isCapturing ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-500 animate-spin"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={onToggle}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            title="收起"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-gray-500"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* View Mode Toggle - Segmented Control */}
@@ -181,8 +319,8 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
             onClick={() => setViewMode('group')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               viewMode === 'group'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-800 text-gray-900 shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900'
             }`}
           >
             按四大阵营
@@ -191,8 +329,8 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
             onClick={() => setViewMode('type')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               viewMode === 'type'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-800 text-gray-900 shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900'
             }`}
           >
             按具体人格
@@ -204,14 +342,14 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
       {viewMode === 'type' && (
         <div className="mb-6">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">配色方案：</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">配色方案：</span>
             <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
               <button
                 onClick={() => setColorScheme('monochromatic')}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
                   colorScheme === 'monochromatic'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-800 text-gray-900 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900'
                 }`}
               >
                 同色系
@@ -220,8 +358,8 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
                 onClick={() => setColorScheme('colorful')}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
                   colorScheme === 'colorful'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-800 text-gray-900 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900'
                 }`}
               >
                 彩色
@@ -242,7 +380,7 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
           该分组暂无数据
         </div>
       ) : (
-        <div className="flex items-start gap-6">
+        <div ref={statsRef} className="flex items-start gap-6">
           {/* Pie Chart - 增大尺寸以适应更多切片 */}
           <div className="flex-1">
             <ResponsiveContainer width="100%" height={viewMode === 'type' ? 280 : 220}>
@@ -288,7 +426,7 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
           <div className={`flex-1 space-y-3 ${viewMode === 'type' ? 'max-h-[340px]' : ''}`}>
             {/* Total Count */}
             <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <div className="text-3xl font-bold text-gray-800">{totalCount}</div>
+              <div className="text-3xl font-bold text-gray-800 dark:text-white">{totalCount}</div>
               <div className="text-sm text-gray-500">总人数</div>
             </div>
 

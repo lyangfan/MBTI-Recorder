@@ -8,7 +8,7 @@ const SORT_OPTIONS = [
 
 function SearchBar({ searchQuery, onSearchChange, sortBy, onSortChange }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4">
       <div className="flex gap-3">
         {/* 搜索输入框 */}
         <div className="flex-1 relative">

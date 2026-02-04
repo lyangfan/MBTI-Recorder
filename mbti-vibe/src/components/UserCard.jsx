@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import WikiModal from './WikiModal';
 import CompatibilityModal from './CompatibilityModal';
-import { MBTI_AVATAR } from '../constants';
+import { MBTI_AVATAR, getZodiac } from '../constants';
 
 // MBTI 类型分组
 const MBTI_GROUPS = {
@@ -64,16 +64,30 @@ function getMBTIGroup(mbti) {
   ) || '守护者';
 }
 
-function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends = [], isPinned = false, onEdit, onDelete, onTogglePin }) {
+function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends = [], isPinned = false, onEdit, onDelete, onTogglePin, birthDate, createdAt }) {
   const group = getMBTIGroup(mbti);
   const colorConfig = getColorConfig(mbti, gender);
   const [isPressed, setIsPressed] = useState(false);
   const [showWiki, setShowWiki] = useState(false);
   const [showCompatibility, setShowCompatibility] = useState(false);
 
+  // 计算星座
+  const zodiac = getZodiac(birthDate);
+
+  // 检查是否是新添加的好友（24小时内）
+  const isNew = createdAt && (Date.now() - createdAt) < 24 * 60 * 60 * 1000;
+
   // 分组标签显示逻辑：最多显示2个，超过的显示"+N"
   const displayGroups = groups.slice(0, 2);
   const remainingCount = groups.length - 2;
+
+  // 计算深色模式下的标签背景
+  const getTagBg = () => {
+    if (gender === '女') {
+      return 'dark:bg-black/30';
+    }
+    return 'bg-white/20 dark:bg-white/10';
+  };
 
   return (
     <div
@@ -86,11 +100,20 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
         transition-transform duration-150
         hover:shadow-xl
         ${isPressed ? 'scale-95' : 'scale-100'}
+        relative
+        dark:shadow-gray-900/50
       `}
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
       onMouseLeave={() => setIsPressed(false)}
     >
+      {/* NEW 徽章 */}
+      {isNew && (
+        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+          NEW
+        </div>
+      )}
+
       <div className="flex items-center gap-7">
         {/* Avatar */}
         <div className="w-32 h-32 flex-shrink-0 flex items-center justify-center rounded-xl overflow-hidden">
@@ -123,9 +146,7 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
           {/* Tags */}
           <div className="flex flex-wrap gap-2">
             {tags.map((tag, index) => {
-              // 根据背景深浅调整标签样式
-              const isLightBg = gender === '女';
-              const tagBg = isLightBg ? 'bg-black/10' : 'bg-white/20';
+              const tagBg = getTagBg();
               const tagText = colorConfig.text;
 
               return (
@@ -137,14 +158,23 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
                 </span>
               );
             })}
+
+            {/* 星座标签 */}
+            {zodiac && zodiac !== '未知' && (
+              <span
+                className={`${getTagBg()} ${colorConfig.text} text-xs px-2 py-1 rounded-full flex items-center gap-1`}
+              >
+                <span>⭐</span>
+                {zodiac}
+              </span>
+            )}
           </div>
 
           {/* 分组标签 */}
           {groups.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {displayGroups.map((group) => {
-                const isLightBg = gender === '女';
-                const groupTagBg = isLightBg ? 'bg-black/15' : 'bg-white/25';
+                const groupTagBg = gender === '女' ? 'bg-black/15 dark:bg-black/25' : 'bg-white/25 dark:bg-white/15';
                 return (
                   <span
                     key={group}
