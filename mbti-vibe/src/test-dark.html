@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode Test</title>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            transition: background-color 0.3s;
+        }
+        html.dark body {
+            background-color: #111827;
+        }
+        .test-box {
+            padding: 20px;
+            margin: 20px;
+            background-color: white;
+            color: black;
+        }
+        html.dark .test-box {
+            background-color: #1f2937;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>Dark Mode Test</h1>
+        <p>If you see white background, light mode is active.</p>
+        <p>If you see dark background, dark mode is active.</p>
+        <button onclick="toggleDark()">Toggle Dark Mode</button>
+        <p>Current mode: <span id="mode">light</span></p>
+    </div>
+    <script>
+        function toggleDark() {
+            document.documentElement.classList.toggle('dark');
+            document.getElementById('mode').textContent =
+                document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        }
+    </script>
+</body>
+</html>

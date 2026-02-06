@@ -1,27 +1,15 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { MBTI_AVATAR, MBTI_RELATIONSHIPS } from '../constants';
 
-function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }) {
-  // 本地分组筛选状态
-  const [selectedGroup, setSelectedGroup] = useState('全部');
-
-  // 当外部 activeGroup 变化时，同步到本地 selectedGroup
-  useEffect(() => {
-    setSelectedGroup(activeGroup);
-  }, [activeGroup]);
-
+function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部', groupingDimension = 'custom' }) {
   // 截图相关
   const chartRef = useRef(null);
   const [isCapturing, setIsCapturing] = useState(false);
 
-  // 根据选中的分组过滤好友
-  const filteredFriends = useMemo(() => {
-    if (selectedGroup === '全部') {
-      return friends;
-    }
-    return friends.filter(f => (f.groups || []).includes(selectedGroup));
-  }, [friends, selectedGroup]);
+  // friends 已经在 App.jsx 中根据 activeGroup 和 groupingDimension 过滤过了
+  // 这里不再进行二次过滤，直接使用传入的 friends
+  const filteredFriends = friends;
 
   // 构建关系网络数据
   const { nodes, links } = useMemo(() => {
@@ -168,7 +156,7 @@ function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }
 
         // 创建下载链接
         const link = document.createElement('a');
-        link.download = `mbti-relationship-${selectedGroup}-${Date.now()}.png`;
+        link.download = `mbti-relationship-${activeGroup}-${Date.now()}.png`;
         link.href = url;
         link.click();
 
@@ -184,7 +172,7 @@ function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }
   // ECharts配置
   const getOption = () => ({
     title: {
-      text: `好友关系网络图 (${filteredFriends.length}人)${selectedGroup !== '全部' ? ` · ${selectedGroup}` : ''}`,
+      text: `好友关系网络图 (${filteredFriends.length}人)${activeGroup !== '全部' ? ` · ${activeGroup}` : ''}`,
       left: 'center',
       top: 10,
       textStyle: {
@@ -290,9 +278,9 @@ function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }
             />
           </svg>
           <p>
-            {selectedGroup === '全部'
+            {activeGroup === '全部'
               ? '还没有好友数据，无法生成关系网络图'
-              : `「${selectedGroup}」分组暂无成员`}
+              : `「${activeGroup}」分组暂无成员`}
           </p>
         </div>
       </div>
@@ -304,9 +292,9 @@ function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <p>
-            {selectedGroup === '全部'
+            {activeGroup === '全部'
               ? '至少需要 2 位好友才能生成关系网络图'
-              : `「${selectedGroup}」分组至少需要 2 位好友才能生成关系网络图`}
+              : `「${activeGroup}」分组至少需要 2 位好友才能生成关系网络图`}
           </p>
         </div>
       </div>
@@ -364,25 +352,44 @@ function RelationshipGraph({ friends = [], groups = [], activeGroup = '全部' }
         </button>
       </div>
 
-      {/* 分组筛选器 */}
-      {groups.length > 1 && (
+      {/* 分组筛选器 - 只在自定义分组模式下显示 */}
+      {groupingDimension === 'custom' && groups.length > 1 && (
         <div className="mb-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex-shrink-0">分组筛选：</span>
             {groups.map(group => (
               <button
                 key={group}
-                onClick={() => setSelectedGroup(group)}
+                onClick={() => {
+                  // 触发父组件的分组切换（通过 window.location.hash 或其他方式）
+                  // 这里简化处理，显示提示
+                  if (group !== activeGroup) {
+                    alert(`请使用上方的分组标签切换到「${group}」`);
+                  }
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                  selectedGroup === group
-                    ? 'bg-blue-500 text-white shadow-lg'
+                  activeGroup === group
+                    ? 'bg-blue-500 text-white shadow-lg cursor-default'
                     : 'bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
                 }`}
+                disabled={group === activeGroup}
               >
-                {group === '全部' ? `全部 (${friends.length}人)` : `${group} (${friends.filter(f => (f.groups || []).includes(group)).length}人)`}
+                {group}
               </button>
             ))}
           </div>
+          <p className="text-xs text-gray-400 mt-2">
+            提示：点击上方分组标签切换不同分组查看关系网络
+          </p>
+        </div>
+      )}
+
+      {/* 性别分组模式下的提示 */}
+      {groupingDimension === 'gender' && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            当前展示 {activeGroup === '全部' ? '所有好友' : `${activeGroup}好友`} 的关系网络
+          </p>
         </div>
       )}
 

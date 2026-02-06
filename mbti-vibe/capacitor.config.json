@@ -1,0 +1,8 @@
+{
+  "appId": "com.mbti.vibe",
+  "appName": "MBTI图谱",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

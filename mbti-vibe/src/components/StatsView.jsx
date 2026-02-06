@@ -139,85 +139,133 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
     setIsCapturing(true);
 
     try {
+      // 等待图表完全渲染
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // 检测当前是否为深色模式
       const isDarkMode = document.documentElement.classList.contains('dark');
 
-      // 等待更长时间确保图表完全渲染
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // 查找 SVG 元素
+      // 查找SVG元素
       const svgElement = statsRef.current.querySelector('svg');
-
       if (!svgElement) {
-        throw new Error('未找到图表元素');
+        throw new Error('未找到图表');
       }
 
-      // 克隆 SVG 元素
-      const clone = svgElement.cloneNode(true);
+      // 获取SVG的实际尺寸
+      const svgRect = svgElement.getBoundingClientRect();
+      const width = Math.max(svgRect.width, 600);
+      const height = Math.max(svgRect.height, 400);
 
-      // 设置 SVG 的尺寸和命名空间
+      // 序列化SVG
       const serializer = new XMLSerializer();
-      let svgString = serializer.serializeToString(clone);
+      let svgString = serializer.serializeToString(svgElement);
 
       // 添加命名空间
-      if (!svgString.startsWith('<svg xmlns')) {
+      if (!svgString.includes('xmlns')) {
         svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
       }
 
-      // 创建 Blob 和 URL
-      const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
+      // 创建SVG Data URL（直接用dataURL，避免Blob兼容性问题）
+      const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
 
-      // 创建 Image 对象
-      const img = new Image();
-      img.onload = () => {
-        // 创建 Canvas
-        const canvas = document.createElement('canvas');
-        const padding = 40;
-        canvas.width = (svgElement.getBoundingClientRect().width || 800) * 2 + padding * 2;
-        canvas.height = (svgElement.getBoundingClientRect().height || 400) * 2 + padding * 2;
-        const ctx = canvas.getContext('2d');
+      // 创建Canvas
+      const canvas = document.createElement('canvas');
+      const scale = 2;
+      const extraHeight = 150; // 额外空间给图例和水印
+      canvas.width = width * scale;
+      canvas.height = (height + extraHeight) * scale;
+      const ctx = canvas.getContext('2d');
 
-        // 填充背景
-        ctx.fillStyle = isDarkMode ? '#1f2937' : '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // 填充背景
+      ctx.fillStyle = isDarkMode ? '#1f2937' : '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 绘制 SVG（放大2倍）
-        ctx.drawImage(img, padding, padding, canvas.width - padding * 2, canvas.height - padding * 2);
+      // 加载并绘制SVG
+      await new Promise((resolve, reject) => {
+        const img = new Image();
 
-        // 添加水印
-        const watermarkText = 'MBTI Vibe - 社交分享';
-        const dateText = new Date().toLocaleDateString('zh-CN');
+        img.onload = () => {
+          try {
+            // 绘制SVG（居中）
+            const svgWidth = svgRect.width || width;
+            const svgHeight = svgRect.height || height;
+            const x = ((width * scale) - (svgWidth * scale)) / 2;
+            const y = 20 * scale;
 
-        ctx.font = 'bold 16px Arial, sans-serif';
-        ctx.fillStyle = isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
-        ctx.textAlign = 'center';
+            ctx.drawImage(img, x, y, svgWidth * scale, svgHeight * scale);
+            resolve();
+          } catch (e) {
+            console.error('绘制SVG失败:', e);
+            reject(e);
+          }
+        };
 
-        const watermarkY = canvas.height - 15;
-        ctx.fillText(watermarkText, canvas.width / 2, watermarkY);
-        ctx.font = '12px Arial, sans-serif';
-        ctx.fillText(dateText, canvas.width / 2, watermarkY + 18);
+        img.onerror = (e) => {
+          console.error('图片加载失败:', e);
+          reject(new Error('图片加载失败'));
+        };
 
-        // 下载图片
-        canvas.toBlob((blob) => {
-          const downloadUrl = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.download = `mbti-stats-${groupName}-${Date.now()}.png`;
-          link.href = downloadUrl;
-          link.click();
-          URL.revokeObjectURL(downloadUrl);
-          URL.revokeObjectURL(url);
-          setIsCapturing(false);
-        }, 'image/png');
-      };
+        // 设置crossOrigin以避免跨域问题
+        img.crossOrigin = 'anonymous';
+        img.src = svgDataUrl;
+      });
 
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
+      // 绘制总人数（使用scale调整坐标）
+      ctx.scale(scale, scale);
+      const totalCountY = height + 40;
+      ctx.font = 'bold 24px Arial, sans-serif';
+      ctx.fillStyle = isDarkMode ? '#ffffff' : '#1f2937';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${totalCount}人`, width / 2, totalCountY);
+      ctx.font = '14px Arial, sans-serif';
+      ctx.fillStyle = isDarkMode ? '#9ca3af' : '#6b7280';
+      ctx.fillText('总人数', width / 2, totalCountY + 20);
+
+      // 绘制图例
+      const legendY = totalCountY + 50;
+      const legendItemWidth = 110;
+
+      ctx.font = '12px Arial, sans-serif';
+
+      chartData.forEach((item, index) => {
+        const xPos = 20 + (index % 5) * legendItemWidth;
+        const yPos = legendY + Math.floor(index / 5) * 25;
+
+        if (yPos < height + extraHeight - 10) {
+          // 绘制颜色点
+          ctx.fillStyle = item.color;
+          ctx.beginPath();
+          ctx.arc(xPos, yPos, 4, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // 绘制文字
+          ctx.fillStyle = isDarkMode ? '#e5e7eb' : '#374151';
+          ctx.textAlign = 'left';
+          ctx.fillText(`${item.name} ${item.value}人`, xPos + 10, yPos + 4);
+        }
+      });
+
+      // 添加水印
+      ctx.font = 'bold 14px Arial, sans-serif';
+      ctx.fillStyle = isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)';
+      ctx.textAlign = 'center';
+      ctx.fillText('MBTI图谱 - 社交分享', width / 2, height + extraHeight - 10);
+
+      // 转换为图片并下载
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+
+        // 创建下载链接
+        const link = document.createElement('a');
+        link.download = `mbti-stats-${groupName}-${Date.now()}.png`;
+        link.href = dataUrl;
+        link.click();
+
         setIsCapturing(false);
-        alert('生成图片失败，请重试');
-      };
-
-      img.src = url;
+      } catch (e) {
+        console.error('转换为图片失败:', e);
+        throw new Error('生成图片失败');
+      }
     } catch (error) {
       console.error('生成图片失败:', error);
       setIsCapturing(false);
@@ -380,17 +428,17 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
           该分组暂无数据
         </div>
       ) : (
-        <div ref={statsRef} className="flex items-start gap-6">
-          {/* Pie Chart - 增大尺寸以适应更多切片 */}
-          <div className="flex-1">
-            <ResponsiveContainer width="100%" height={viewMode === 'type' ? 280 : 220}>
+        <div ref={statsRef} className="space-y-4">
+          {/* 饼状图 - 居中 */}
+          <div className="flex justify-center">
+            <ResponsiveContainer width="100%" height={260}>
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={viewMode === 'type' ? 60 : 50}
-                  outerRadius={viewMode === 'type' ? 100 : 80}
+                  innerRadius={70}
+                  outerRadius={110}
                   paddingAngle={viewMode === 'type' ? 1 : 2}
                   dataKey="value"
                   label={false}
@@ -402,7 +450,6 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
                 <Tooltip
                   formatter={(value, name) => {
                     const percentage = ((value / totalCount) * 100).toFixed(1);
-                    // 返回格式：名称\n数量人 (占比%)
                     return [`${value}人 (${percentage}%)`, name];
                   }}
                   contentStyle={{
@@ -422,41 +469,39 @@ function StatsView({ friends, groupName, isCollapsed, onToggle }) {
             </ResponsiveContainer>
           </div>
 
-          {/* Legend & Center Info - 优化布局和滚动 */}
-          <div className={`flex-1 space-y-3 ${viewMode === 'type' ? 'max-h-[340px]' : ''}`}>
-            {/* Total Count */}
-            <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <div className="text-3xl font-bold text-gray-800 dark:text-white">{totalCount}</div>
-              <div className="text-sm text-gray-500">总人数</div>
+          {/* 总人数和图例 - 横向排列 */}
+          <div className="border-t border-gray-200 pt-4">
+            {/* 总人数 - 紧凑卡片 */}
+            <div className="flex justify-center mb-3">
+              <div className="text-center p-3 bg-gray-50 rounded-xl min-w-[100px]">
+                <div className="text-3xl font-bold text-gray-800 dark:text-white">{totalCount}</div>
+                <div className="text-xs text-gray-500">总人数</div>
+                {viewMode === 'type' && chartData.length > 0 && (
+                  <div className="text-xs text-gray-400 mt-1">
+                    {chartData.length} 种类型
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Legend - Type 模式下添加滚动 */}
-            <div className={`space-y-2 ${viewMode === 'type' ? 'overflow-y-auto max-h-[250px] pr-2' : ''}`}>
+            {/* 图例 - 居中显示 */}
+            <div className={`flex flex-wrap justify-center gap-2 ${viewMode === 'type' ? 'max-h-[180px] overflow-y-auto pr-2' : ''}`}>
               {chartData.map((item) => (
                 <div
                   key={item.name}
-                  className="flex items-center justify-between hover:bg-gray-50 px-2 py-1 rounded-md transition-colors"
+                  className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 px-3 py-1 rounded-lg transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-sm text-gray-700 font-medium">{item.name}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {item.value}人
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-xs text-gray-700 font-medium">{item.name}</span>
+                  <span className="text-xs font-bold text-gray-900 ml-1">
+                    {item.value}
                   </span>
                 </div>
               ))}
             </div>
-
-            {/* Type 模式下显示总数占比 */}
-            {viewMode === 'type' && chartData.length > 0 && (
-              <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-100">
-                {chartData.length} 种人格类型
-              </div>
-            )}
           </div>
         </div>
       )}

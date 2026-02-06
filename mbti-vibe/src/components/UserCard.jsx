@@ -81,20 +81,19 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
   const displayGroups = groups.slice(0, 2);
   const remainingCount = groups.length - 2;
 
-  // 计算深色模式下的标签背景
-  const getTagBg = () => {
-    if (gender === '女') {
-      return 'dark:bg-black/30';
-    }
-    return 'bg-white/20 dark:bg-white/10';
-  };
+  // 统一的标签背景样式（所有性别一致）
+  const tagBg = 'bg-white/20 dark:bg-white/10';
+  const groupTagBg = 'bg-white/25 dark:bg-white/15';
+
+  // 统一的标签文字颜色（所有性别一致，使用白色带阴影确保可读性）
+  const tagText = 'text-white drop-shadow-sm';
 
   return (
     <div
       className={`
         bg-gradient-to-br ${colorConfig.gradient}
-        rounded-3xl
-        p-6
+        rounded-2xl
+        p-4
         shadow-lg
         cursor-pointer
         transition-transform duration-150
@@ -109,14 +108,14 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
     >
       {/* NEW 徽章 */}
       {isNew && (
-        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+        <div className="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse">
           NEW
         </div>
       )}
 
-      <div className="flex items-center gap-7">
+      <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="w-32 h-32 flex-shrink-0 flex items-center justify-center rounded-xl overflow-hidden">
+        <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden">
           <img
             src={MBTI_AVATAR[mbti] || '/assets/avatars/INTJ.svg'}
             alt={mbti}
@@ -128,7 +127,7 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
         <div className="flex-1 min-w-0">
           {/* MBTI Type */}
           <div
-            className={`${colorConfig.text} text-3xl font-bold tracking-wider mb-2 cursor-pointer hover:underline hover:underline-offset-4 transition-all`}
+            className={`${colorConfig.text} text-2xl font-bold tracking-wider mb-1 cursor-pointer hover:underline hover:underline-offset-4 transition-all`}
             onClick={(e) => {
               e.stopPropagation();
               setShowWiki(true);
@@ -139,20 +138,17 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
           </div>
 
           {/* Name */}
-          <div className={`${colorConfig.text} text-lg font-medium mb-1 truncate`}>
+          <div className={`${colorConfig.text} text-base font-medium mb-1 truncate`}>
             {name}
           </div>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {tags.map((tag, index) => {
-              const tagBg = getTagBg();
-              const tagText = colorConfig.text;
-
               return (
                 <span
                   key={index}
-                  className={`${tagBg} ${tagText} text-xs px-2 py-1 rounded-full`}
+                  className={`${tagBg} ${tagText} text-xs px-2 py-0.5 rounded-full`}
                 >
                   {tag}
                 </span>
@@ -162,9 +158,9 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
             {/* 星座标签 */}
             {zodiac && zodiac !== '未知' && (
               <span
-                className={`${getTagBg()} ${colorConfig.text} text-xs px-2 py-1 rounded-full flex items-center gap-1`}
+                className={`${tagBg} ${tagText} text-xs px-2 py-0.5 rounded-full flex items-center gap-0.5`}
               >
-                <span>⭐</span>
+                <span className="text-xs">⭐</span>
                 {zodiac}
               </span>
             )}
@@ -172,20 +168,19 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
 
           {/* 分组标签 */}
           {groups.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-1 mt-1.5">
               {displayGroups.map((group) => {
-                const groupTagBg = gender === '女' ? 'bg-black/15 dark:bg-black/25' : 'bg-white/25 dark:bg-white/15';
                 return (
                   <span
                     key={group}
-                    className={`${groupTagBg} ${colorConfig.text} text-xs px-2 py-0.5 rounded-md font-medium`}
+                    className={`${groupTagBg} ${tagText} text-xs px-1.5 py-0.5 rounded-md font-medium`}
                   >
                     {group}
                   </span>
                 );
               })}
               {remainingCount > 0 && (
-                <span className={`${colorConfig.text} text-xs px-2 py-0.5 rounded-md font-medium opacity-80`}>
+                <span className={`${tagText} text-xs px-1.5 py-0.5 rounded-md font-medium opacity-80`}>
                   +{remainingCount}
                 </span>
               )}
@@ -194,7 +189,7 @@ function UserCard({ id, mbti, name, avatar, tags, gender, groups = [], friends =
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-2 flex-shrink-0">
+        <div className="flex flex-col gap-1.5 flex-shrink-0">
           {/* Edit Button */}
           <button
             onClick={(e) => {

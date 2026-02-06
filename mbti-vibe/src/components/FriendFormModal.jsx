@@ -307,13 +307,109 @@ function FriendFormModal({ isOpen, onClose, onSubmit, friend, friends = [] }) {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               出生日期 *
             </label>
-            <input
-              type="date"
-              required
-              value={formData.birthDate}
-              onChange={(e) => handleChange('birthDate', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
+            {/* 年月日滚轮选择器 */}
+            <div className="grid grid-cols-3 gap-2">
+              {/* 年份选择 */}
+              <select
+                required
+                value={formData.birthDate ? formData.birthDate.split('-')[0] : ''}
+                onChange={(e) => {
+                  const [, month, day] = formData.birthDate ? formData.birthDate.split('-') : ['', '01', '01'];
+                  handleChange('birthDate', `${e.target.value}-${month}-${day}`);
+                }}
+                className="px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+              >
+                <option value="">年</option>
+                {Array.from({ length: 100 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return year >= 1940 ? (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ) : null;
+                })}
+              </select>
+
+              {/* 月份选择 */}
+              <select
+                required
+                value={formData.birthDate ? formData.birthDate.split('-')[1] : ''}
+                onChange={(e) => {
+                  const [year, , day] = formData.birthDate ? formData.birthDate.split('-') : ['', '', '01'];
+                  handleChange('birthDate', `${year || '2000'}-${e.target.value}-${day}`);
+                }}
+                className="px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+              >
+                <option value="">月</option>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                    {i + 1}月
+                  </option>
+                ))}
+              </select>
+
+              {/* 日期选择 */}
+              <select
+                required
+                value={formData.birthDate ? formData.birthDate.split('-')[2] : ''}
+                onChange={(e) => {
+                  const [year, month] = formData.birthDate ? formData.birthDate.split('-') : ['', ''];
+                  handleChange('birthDate', `${year || '2000'}-${month || '01'}-${e.target.value}`);
+                }}
+                className="px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+              >
+                <option value="">日</option>
+                {Array.from({ length: 31 }, (_, i) => (
+                  <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                    {i + 1}日
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 快捷年份选择 */}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const year = new Date().getFullYear() - 18;
+                  handleChange('birthDate', `${year}-01-01`);
+                }}
+                className="text-xs px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition"
+              >
+                18岁
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const year = new Date().getFullYear() - 25;
+                  handleChange('birthDate', `${year}-01-01`);
+                }}
+                className="text-xs px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full hover:bg-green-200 dark:hover:bg-green-800 transition"
+              >
+                25岁
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const year = new Date().getFullYear() - 30;
+                  handleChange('birthDate', `${year}-01-01`);
+                }}
+                className="text-xs px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-800 transition"
+              >
+                30岁
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const year = new Date().getFullYear() - 40;
+                  handleChange('birthDate', `${year}-01-01`);
+                }}
+                className="text-xs px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800 transition"
+              >
+                40岁
+              </button>
+            </div>
             {formData.birthDate && (
               <div className="mt-2 flex flex-wrap gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-300">
